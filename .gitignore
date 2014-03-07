@@ -1,0 +1,6 @@
+graph.json
+bin/
+edges.txt
+edges.pairs
+node_modules
+config.json

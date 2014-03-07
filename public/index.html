@@ -1,0 +1,109 @@
+<html>
+<head>
+    <style type="text/css">
+  #container {
+    height: 800px;
+    position: fixed;
+    top: 0;
+    right: 400px;
+    left: 0px;
+  }
+
+  #info {
+    position: absolute;
+    right: 0;
+    width: 400px;
+    top: 0;
+  }
+</style>
+</head>
+    <body>
+        <div id="container"></div>
+        <div id="info"></div>
+        <script src="sigma.min.js"></script>
+        <script src="jquery-2.1.0.min.js"></script>
+        <script>
+            $('#container').height(window.innerHeight);
+            function highlight(nodes, color) {
+
+            }
+            $.get("/fb").done(function(json) {
+                window.eh = json;
+                sigma.settings.defaultEdgeColor = "#bbb";
+                sigma.settings.edgeColor = "default";
+                var comms = {};
+                var s = new sigma('container');
+                var nodesInfo = {};
+                json.nodes.forEach(function(n) {
+                    nodesInfo[n.id] = n;
+                    n.id += '';
+                    n.label = n.name;
+                    n.size = 1;
+                });
+                var commsScore = {};
+                json.communities.forEach(function(nc) {
+                    nc.communities.forEach(function(c) {
+                        if (!comms[c[1]]) {
+                            comms[c[1]] = [];
+                            commsScore[c[1]] = [];
+                        }
+                        comms[c[1]].push(nc.id + '');
+                        commsScore[c[1]].push(c[0]);
+                    });
+                });
+                window.br = json.communities.sort(function(a, b) {
+                    return b.bridge - a.bridge;
+                }).map(function(comm) {
+                    return nodesInfo[comm.id].name;
+                });
+                asdf = comms;
+                var doms = Object.keys(comms).map(function(k) {
+                    var arr = comms[k];
+                    var dom = document.createElement("div");
+                    dom.innerHTML = arr.map(function(id, ind) {
+                        return '(' + nodesInfo[id].name + ", " + commsScore[k][ind] + ')';
+                    }).join(", ");
+                    $(dom).hover(function() {
+                        dom.style.backgroundColor = 'lightblue';
+                        s.graph.nodes(arr).forEach(function(n) {
+                            n.color = '#99f';
+                        });
+                        s.refresh();
+                    }, function() {
+                        dom.style.backgroundColor = 'transparent';
+                        s.graph.nodes(arr).forEach(function(n) {
+                            n.color = '#000';
+                        });
+                        s.refresh();
+                    });
+                    return dom;
+                }).forEach(function(dom) {
+                    $("#info").append(dom);
+                });
+                json.positions.forEach(function(pos) {
+                    if (!pos.id) return;
+                    nodesInfo[pos.id].x = pos.x * $('#container').width();
+                    nodesInfo[pos.id].y = pos.y * $('#container').height();
+                });
+                json.nodes.forEach(function(n) {
+                    if (!n.x) {
+                        n.x = Math.random() * 100;
+                        n.y = Math.random() * 100;
+                    }
+                })
+                window.ehh = s;
+                s.graph.read({
+                    nodes: json.nodes,
+                    edges: json.edges.map(function(e, ind) {
+                        return {
+                            id: 'e' + ind,
+                            source: e[0] + '',
+                            target: e[1] + ''
+                        };
+                    })
+                });
+                s.refresh();
+            });
+        </script>
+    </body>
+</html>
