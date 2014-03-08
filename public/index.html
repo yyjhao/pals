@@ -33,11 +33,13 @@
         <div class="jumbotron">
             <h1>pals</h1>
             <p class="lead">Visualize your social network!</p>
+            <div class="bottom-bar">
+                <button type="button" class="btn btn-primary .start-button">Start</button>
+            </div>
         </div>
         <div class="container">
 
             <div class="row">
-                <a href='#'>Login with facebook</a>
                 <div id="graph-viewer">
                     <div class='graph-container'></div>
                     <div class='graph-sidebar'></div>
@@ -74,6 +76,7 @@
         <!-- endbuild -->
 
         <!-- build:js({app,.tmp}) scripts/main.js -->
+        <script src="scripts/GraphRenderer.js"></script>
         <script src="scripts/main.js"></script>
         <!-- endbuild -->
 </body>
