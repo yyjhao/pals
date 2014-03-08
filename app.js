@@ -3,10 +3,11 @@
 var express = require('express'),
     http = require('http'),
     path = require('path'),
+    connect = require('connect'),
     Graph = require('./lib/Graph'),
     Facebook = require('facebook-node-sdk'),
     config = require('./config'),
-    RedisStore = require('connect-redis')(express),
+    RedisStore = require('connect-redis')(connect),
     redis = require('redis').createClient(config.redis.unixSocket);
 
 var app = express();
