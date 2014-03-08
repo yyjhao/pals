@@ -9,3 +9,4 @@ bin/
 edges.txt
 edges.pairs
 config.json
+build/
