@@ -1,6 +1,11 @@
+node_modules
+public-dist
+public/components
+.tmp/
+.sass-cache/
+*.css
 graph.json
 bin/
 edges.txt
 edges.pairs
-node_modules
 config.json

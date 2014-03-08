@@ -1,109 +1,80 @@
+<!doctype html>
 <html>
-<head>
-    <style type="text/css">
-  #container {
-    height: 800px;
-    position: fixed;
-    top: 0;
-    right: 400px;
-    left: 0px;
-  }
+    <head>
+        <meta charset="utf-8">
+        <title>pals</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+        <!-- build:css styles/vendor.css -->
+        <!-- bower:css -->
 
-  #info {
-    position: absolute;
-    right: 0;
-    width: 400px;
-    top: 0;
-  }
-</style>
-</head>
+        <!-- endbower -->
+        <!-- endbuild -->
+        <!-- build:css(.tmp) styles/main.css -->
+        <link rel="stylesheet" href="styles/main.css">
+        <!-- endbuild -->
+
+    </head>
     <body>
-        <div id="container"></div>
-        <div id="info"></div>
-        <script src="sigma.min.js"></script>
-        <script src="jquery-2.1.0.min.js"></script>
-        <script>
-            $('#container').height(window.innerHeight);
-            function highlight(nodes, color) {
+        <!--[if lt IE 10]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+        <header class='navbar'>
+            <div class="container">
+                <div class="header">
+                <ul class="nav nav-pills pull-right">
+                    <li class="active"><a href="#">Home</a></li>
+                    <li><a href="#">About</a></li>
+                </ul>
+                <h3 class="text-muted">pals</h3>
+            </div>
+            </div>
+        </header>
+        <div class="jumbotron">
+            <h1>pals</h1>
+            <p class="lead">Visualize your social network!</p>
+        </div>
+        <div class="container">
 
-            }
-            $.get("/fb").done(function(json) {
-                window.eh = json;
-                sigma.settings.defaultEdgeColor = "#bbb";
-                sigma.settings.edgeColor = "default";
-                var comms = {};
-                var s = new sigma('container');
-                var nodesInfo = {};
-                json.nodes.forEach(function(n) {
-                    nodesInfo[n.id] = n;
-                    n.id += '';
-                    n.label = n.name;
-                    n.size = 1;
-                });
-                var commsScore = {};
-                json.communities.forEach(function(nc) {
-                    nc.communities.forEach(function(c) {
-                        if (!comms[c[1]]) {
-                            comms[c[1]] = [];
-                            commsScore[c[1]] = [];
-                        }
-                        comms[c[1]].push(nc.id + '');
-                        commsScore[c[1]].push(c[0]);
-                    });
-                });
-                window.br = json.communities.sort(function(a, b) {
-                    return b.bridge - a.bridge;
-                }).map(function(comm) {
-                    return nodesInfo[comm.id].name;
-                });
-                asdf = comms;
-                var doms = Object.keys(comms).map(function(k) {
-                    var arr = comms[k];
-                    var dom = document.createElement("div");
-                    dom.innerHTML = arr.map(function(id, ind) {
-                        return '(' + nodesInfo[id].name + ", " + commsScore[k][ind] + ')';
-                    }).join(", ");
-                    $(dom).hover(function() {
-                        dom.style.backgroundColor = 'lightblue';
-                        s.graph.nodes(arr).forEach(function(n) {
-                            n.color = '#99f';
-                        });
-                        s.refresh();
-                    }, function() {
-                        dom.style.backgroundColor = 'transparent';
-                        s.graph.nodes(arr).forEach(function(n) {
-                            n.color = '#000';
-                        });
-                        s.refresh();
-                    });
-                    return dom;
-                }).forEach(function(dom) {
-                    $("#info").append(dom);
-                });
-                json.positions.forEach(function(pos) {
-                    if (!pos.id) return;
-                    nodesInfo[pos.id].x = pos.x * $('#container').width();
-                    nodesInfo[pos.id].y = pos.y * $('#container').height();
-                });
-                json.nodes.forEach(function(n) {
-                    if (!n.x) {
-                        n.x = Math.random() * 100;
-                        n.y = Math.random() * 100;
-                    }
-                })
-                window.ehh = s;
-                s.graph.read({
-                    nodes: json.nodes,
-                    edges: json.edges.map(function(e, ind) {
-                        return {
-                            id: 'e' + ind,
-                            source: e[0] + '',
-                            target: e[1] + ''
-                        };
-                    })
-                });
-                s.refresh();
-            });
-        </script>
-    </body>
+            <div class="row">
+                <a href='#'>Login with facebook</a>
+                <div id="graph-viewer">
+                    <div class='graph-container'></div>
+                    <div class='graph-sidebar'></div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>Copyright &copy; 2014 Yao Yujian</p>
+            </div>
+
+        </div>
+
+
+        <!-- build:js scripts/vendor.js -->
+        <!-- bower:js -->
+        <script src="components/jquery/dist/jquery.js"></script>
+        <script src="components/sigma/build/sigma.min.js"></script>
+        <!-- endbower -->
+        <!-- endbuild -->
+
+        <!-- build:js scripts/plugins.js -->
+        <script src="components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/affix.js"></script>
+        <script src="components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/alert.js"></script>
+        <script src="components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/dropdown.js"></script>
+        <script src="components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/tooltip.js"></script>
+        <script src="components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/modal.js"></script>
+        <script src="components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/transition.js"></script>
+        <script src="components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/button.js"></script>
+        <script src="components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/popover.js"></script>
+        <script src="components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/carousel.js"></script>
+        <script src="components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/scrollspy.js"></script>
+        <script src="components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/collapse.js"></script>
+        <script src="components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/tab.js"></script>
+        <!-- endbuild -->
+
+        <!-- build:js({app,.tmp}) scripts/main.js -->
+        <script src="scripts/main.js"></script>
+        <!-- endbuild -->
+</body>
 </html>
