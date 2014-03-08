@@ -1,6 +1,6 @@
-'use strict';
-
 window.GraphRenderer = function(dom, json) {
+    'use strict';
+
     sigma.settings.defaultEdgeColor = "#bbf";
     sigma.settings.edgeColor = "default";
     sigma.settings.defaultNodeColor = '#369';

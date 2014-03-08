@@ -5,9 +5,15 @@ var express = require('express'),
     path = require('path'),
     Graph = require('./lib/Graph'),
     Facebook = require('facebook-node-sdk'),
-    config = require('./config');
+    config = require('./config'),
+    RedisStore = require('connect-redis')(express),
+    redis = require('redis').createClient(config.redis.unixSocket);
 
 var app = express();
+
+config.redisStore.client = redis;
+
+var sessionStore = new RedisStore(config.redisStore);
 
 app.configure(function() {
     app.set('port', config.port);
@@ -15,7 +21,7 @@ app.configure(function() {
     app.use(express.logger('dev'));
     app.use(express.bodyParser());
     app.use(express.cookieParser());
-    app.use(express.session({ secret: config.secret }));
+    app.use(express.session({ secret: config.secret, store: sessionStore }));
     app.use(Facebook.middleware({
         appId: config.fb.id,
         secret: config.fb.secret

@@ -1,6 +1,5 @@
-'use strict';
-
 $('.start-button').click(function() {
+    'use strict';
     localStorage.setItem('last-try', 0);
     $("#loading-screen").show();
     $.get('/fb').done(function(json) {

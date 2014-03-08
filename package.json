@@ -11,7 +11,9 @@
   "dependencies": {
     "express": "",
     "facebook-node-sdk": "",
-    "temp": ""
+    "temp": "",
+    "connect-redis": "1.4.x",
+    "redis": ""
   },
   "devDependencies": {
     "grunt": "~0.4.1",
