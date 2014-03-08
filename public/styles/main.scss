@@ -11,9 +11,21 @@ $icon-font-path: "/components/bootstrap-sass-official/vendor/assets/fonts/bootst
     padding: 0.2em 0;
 }
 
-#graph-viewer {
-    height: 800px;
+#loading-screen {
+    background: rgba(black, 0.6);
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-shadow: 0 0 10px white;
+    color: white;
+    z-index: 999;
+    text-align: center;
+    padding-top: 3em;
+}
 
+#graph-viewer {
     &:after {
         content: "";
         display: block;
