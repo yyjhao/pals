@@ -8,6 +8,9 @@ $('.start-button').click(function() {
         $('html, body').animate({
             scrollTop: $('#graph-viewer').offset().top
         }, 1000);
+        if (json.error_code) {
+            alert(json.error_msg);
+        }
         window.g = new GraphRenderer($('#graph-viewer'), json);
     }).fail(function() {
         localStorage.setItem('last-try', Date.now());

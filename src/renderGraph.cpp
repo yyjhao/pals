@@ -13,7 +13,7 @@ using namespace std;
 const double FricCoe = 0.7;
 const double NODE_MASS = 1;
 const double GRAPH_SRING = 0.015;
-const double CG_STRING = 0.04;
+const double CG_STRING = 0.3;
 const double COMM_MASS = 2;
 const double NODE_REPULSE = 0.015;
 const double COMM_REPULSE = 0.1;
@@ -214,6 +214,9 @@ int main() {
         }
         for (auto n:nodesV) {
             gravityAttract(n);
+        }
+        for (auto c:commsV) {
+            gravityAttract(c);
         }
         for (auto s:strings) {
             s->tighten();

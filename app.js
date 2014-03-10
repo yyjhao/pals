@@ -43,7 +43,7 @@ app.get('/fb_login', Facebook.loginRequired(), function(req, res) {
 });
 
 app.get('/fb', function(req, res) {
-    req.facebook.api('/me/friends?fields=mutualfriends,name', function(err, data) {
+    req.facebook.api('/me/?fields=friends.fields(name,mutualfriends.fields(id))', function(err, data) {
         if (err) {
             console.log('err', err);
             return res.send(500);
