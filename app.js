@@ -8,7 +8,8 @@ var express = require('express'),
     Facebook = require('facebook-node-sdk'),
     config = require('./config'),
     RedisStore = require('connect-redis')(connect),
-    redis = require('redis').createClient(config.redis.unixSocket);
+    redis = require('redis').createClient(config.redis.unixSocket),
+    FBGraphLoader = require('./lib/FBGraphLoader');
 
 var app = express();
 
@@ -43,15 +44,15 @@ app.get('/fb_login', Facebook.loginRequired(), function(req, res) {
 });
 
 app.get('/fb', function(req, res) {
-    req.facebook.api('/me/?fields=friends.fields(name,mutualfriends.fields(id))', function(err, data) {
+    FBGraphLoader.load(req.facebook, function(err, data) {
         if (err) {
             console.log('err', err);
-            return res.send(500);
+            res.send(500);
         } else if (data.error_code) {
             console.log('fb err', data);
             res.send(data);
         } else {
-            var graph = Graph.fromFB(data.friends.data);
+            var graph = Graph.fromFB(data);
             graph.computeCommunities(function(err, nc, pos) {
                 if (err) {
                     console.log(err);
@@ -66,6 +67,29 @@ app.get('/fb', function(req, res) {
             });
         }
     });
+    // req.facebook.api('/me/?fields=friends.limit(100).fields(name,mutualfriends.fields(id))', function(err, data) {
+    //     if (err) {
+    //         console.log('err', err);
+    //         return res.send(500);
+    //     } else if (data.error_code) {
+    //         console.log('fb err', data);
+    //         res.send(data);
+    //     } else {
+    //         var graph = Graph.fromFB(data.friends.data);
+    //         graph.computeCommunities(function(err, nc, pos) {
+    //             if (err) {
+    //                 console.log(err);
+    //                 return res.send(500);
+    //             }
+    //             res.send({
+    //                 nodes: graph.nodes,
+    //                 edges: graph.edges,
+    //                 communities: nc,
+    //                 positions: pos
+    //             });
+    //         });
+    //     }
+    // });
     // var graph = Graph.fromFB(require('./graph'));
     // graph.computeCommunities(function(err, nc, pos) {
     //     if (err) {
