@@ -44,52 +44,34 @@ app.get('/fb_login', Facebook.loginRequired(), function(req, res) {
 });
 
 app.get('/fb', function(req, res) {
-    FBGraphLoader.load(req.facebook, function(err, data) {
-        if (err) {
-            console.log('err', err);
-            res.send(500);
-        } else if (data.error_code) {
-            console.log('fb err', data);
-            res.send(data);
-        } else {
-            var graph = Graph.fromFB(data);
-            graph.computeCommunities(function(err, nc, pos) {
-                if (err) {
-                    console.log(err);
-                    return res.send(500);
-                }
-                res.send({
-                    nodes: graph.nodes,
-                    edges: graph.edges,
-                    communities: nc,
-                    positions: pos
+    if (!req.session.user_id) {
+        return res.send(500);
+    } else {
+        console.log("getting fb data for user id", req.session.user_id)
+        FBGraphLoader.load(req.facebook, function(err, data) {
+            if (err) {
+                console.log('err', err);
+                res.send(500);
+            } else if (data.error_code) {
+                console.log('fb err', data);
+                res.send(data);
+            } else {
+                var graph = Graph.fromFB(data);
+                graph.computeCommunities(function(err, nc, pos) {
+                    if (err) {
+                        console.log(err);
+                        return res.send(500);
+                    }
+                    res.send({
+                        nodes: graph.nodes,
+                        edges: graph.edges,
+                        communities: nc,
+                        positions: pos
+                    });
                 });
-            });
-        }
-    });
-    // req.facebook.api('/me/?fields=friends.limit(100).fields(name,mutualfriends.fields(id))', function(err, data) {
-    //     if (err) {
-    //         console.log('err', err);
-    //         return res.send(500);
-    //     } else if (data.error_code) {
-    //         console.log('fb err', data);
-    //         res.send(data);
-    //     } else {
-    //         var graph = Graph.fromFB(data.friends.data);
-    //         graph.computeCommunities(function(err, nc, pos) {
-    //             if (err) {
-    //                 console.log(err);
-    //                 return res.send(500);
-    //             }
-    //             res.send({
-    //                 nodes: graph.nodes,
-    //                 edges: graph.edges,
-    //                 communities: nc,
-    //                 positions: pos
-    //             });
-    //         });
-    //     }
-    // });
+            }
+        });
+    }
     // var graph = Graph.fromFB(require('./graph'));
     // graph.computeCommunities(function(err, nc, pos) {
     //     if (err) {
