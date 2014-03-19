@@ -13,10 +13,10 @@ using namespace std;
 const double FricCoe = 0.7;
 const double NODE_MASS = 1;
 const double GRAPH_SRING = 0.015;
-const double CG_STRING = 0.3;
+const double CG_STRING = 0.5;
 const double COMM_MASS = 2;
 const double NODE_REPULSE = 0.015;
-const double COMM_REPULSE = 0.1;
+const double COMM_REPULSE = 1;
 
 
 class Vec2 {

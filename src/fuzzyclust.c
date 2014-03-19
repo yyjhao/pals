@@ -117,6 +117,8 @@ typedef struct {
     iteration_function_t *iterate;
 } fuzzy_clustering_t;
 
+igraph_vector_t incmp;
+
 // Auxiliary function to create a lexicographically sorted edge list
 int edge_sort_aux(const void* a, const void* b) {
     edge_t *e1 = (edge_t*)a;
@@ -136,7 +138,7 @@ igraph_real_t sample_gamma(long int alpha, igraph_real_t beta) {
     result=0.0;
     for (i=0; i<alpha; i++) {
         r=0.0;
-        while (r<0.001) { r = (float)rand() / RAND_MAX; }
+        while (r<0.001) { r = (double)rand() / RAND_MAX; }
         result -= log(r);
     }
     
@@ -211,10 +213,15 @@ void membership_matrix_prune(membership_matrix_t *c, igraph_real_t eps) {
 // Returns the similarity of two vertices using a membership matrix (two if directed)
 igraph_real_t membership_matrix_get_similarity(const membership_matrix_t *u,
         const membership_matrix_t *v, long int v1, long int v2) {
+    if (VECTOR(incmp)[v1] != VECTOR(incmp)[v2]) {
+        return 0;
+    }
     long int i, k;
     igraph_real_t result = 0.0;
     k = igraph_matrix_ncol(u);
-    for (i=0; i<k; i++) result += MATRIX(*u, v1, i)*MATRIX(*v, v2, i);
+    for (i=0; i<k; i++) {
+        result += MATRIX(*u, v1, i)*MATRIX(*v, v2, i);
+    }
     return result;
 }
 
@@ -496,6 +503,7 @@ int fuzzy_clustering_init(fuzzy_clustering_t *f, const igraph_t *g, int numcl,
 				WARNING("Negative weight skipped at %s:%ld\n", params.weight_file, lines);
 			} else {
                 if (i == j) continue;
+                if (VECTOR(incmp)[i] != VECTOR(incmp)[j]) continue;
                 if (k == 2) w = 1.0;
 				if (w > maxw) maxw = w;
                 igraph_are_connected(f->graph, i, j, &b);
@@ -586,7 +594,7 @@ int fuzzy_clustering_init(fuzzy_clustering_t *f, const igraph_t *g, int numcl,
         m = igraph_ecount(g);
 		if (!f->is_directed) m *= 2;
         for (k=0; k < f->edge_count; k++) {
-            f->edges[k].weight = sqr(f->edges[k].target - (VECTOR(f->outdegrees)[f->edges[k].src] * VECTOR(f->indegrees)[f->edges[k].dst]) / ((float)m));
+            f->edges[k].weight = sqr(f->edges[k].target - (VECTOR(f->outdegrees)[f->edges[k].src] * VECTOR(f->indegrees)[f->edges[k].dst]) / ((double)m));
         }
     }
 
@@ -858,12 +866,12 @@ void fuzzy_clustering_mutate(fuzzy_clustering_t *f, igraph_real_t amount) {
 
     for (i=0; i < n; i++) 
         for (j=0; j < f->k; j++) 
-            MATRIX(f->current.u, i, j) += ((float)(rand()) / RAND_MAX) * amount;
+            MATRIX(f->current.u, i, j) += ((double)(rand()) / RAND_MAX) * amount;
     membership_matrix_normalize(&f->current.u);
     if (f->is_directed) {
 		for (i=0; i < n; i++) 
 			for (j=0; j < f->k; j++) 
-				MATRIX(f->current.v, i, j) += ((float)(rand()) / RAND_MAX) * amount;
+				MATRIX(f->current.v, i, j) += ((double)(rand()) / RAND_MAX) * amount;
 		membership_matrix_normalize(&f->current.v);
 	}
     fuzzy_clustering_recalculate(f);
@@ -938,7 +946,7 @@ int fuzzy_clustering_print(const fuzzy_clustering_t *f, FILE* out) {
     if (f->dominance_threshold < 0)
         fprintf(out, "%% No dominance threshold\n");
     else
-        fprintf(out, "%% Dominance threshold = %.4f\n", (float)f->dominance_threshold);
+        fprintf(out, "%% Dominance threshold = %.4f\n", (double)f->dominance_threshold);
 
     /* Calculate mean degree and std */
     d_mean = 0.0; s = 0.0;
@@ -1303,6 +1311,10 @@ int main(int argc, char* argv[]) {
         INFO("Simplifying graph\n");
         igraph_simplify(&g, 1, 1, 0);
     }
+
+    igraph_vector_init(&incmp, 1);
+    igraph_clusters(&g, &incmp, NULL, NULL, IGRAPH_WEAK);
+
     INFO("Graph has %ld vertices and %ld edges\n", (long)igraph_vcount(&g), (long)igraph_ecount(&g));
     INFO("Initializing constraints\n");
     IGRAPH_CHECK(fuzzy_clustering_init(&clustering, &g, 2, params.dominance_threshold));
@@ -1344,7 +1356,7 @@ int main(int argc, char* argv[]) {
 					}
                     q = fuzzy_clustering_modularity(&clustering);
                     INFO("Modularity is now %.4f (%ld clusters)\n", q, clustering.k);
-                    if (q-prev_q < 0.0001 && params.adaptive_cluster_count) {
+                    if (q != q ||  (q-prev_q < -0.001 && q > 0.25 && params.adaptive_cluster_count)) {
                         state_copy(&clustering.current, &clustering.best);
                     } else {
                         INFO("Increasing number of clusters to %ld\n", clustering.k+1);

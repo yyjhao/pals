@@ -1,6 +1,8 @@
 window.GraphRenderer = function(dom, json) {
     'use strict';
 
+    window.eh = json;
+
     sigma.settings.defaultEdgeColor = "#bbf";
     sigma.settings.edgeColor = "default";
     sigma.settings.defaultNodeColor = '#369';
@@ -12,7 +14,7 @@ window.GraphRenderer = function(dom, json) {
         nodesInfo[n.id] = n;
         n.id += '';
         n.label = n.name;
-        n.size = 1;
+        n.size = 0;
     });
     var commsScore = {};
     json.communities.forEach(function(nc) {
@@ -23,6 +25,8 @@ window.GraphRenderer = function(dom, json) {
             }
             comms[c[1]].push(nc.id + '');
             commsScore[c[1]].push(c[0]);
+
+            json.nodes[nc.id].size += 1;
         });
     });
     var doms = Object.keys(comms).map(function(k) {
