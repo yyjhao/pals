@@ -97,6 +97,7 @@ app.get('/fb', function(req, res) {
     // var graph = Graph.fromFB(require('./530811368.json'));
     // var graph = Graph.fromFB(require('./683128635.json'));
     // var graph = Graph.fromFB(require('./1578734144.json'));
+    // var graph = Graph.fromFB(require('./100003367083848.json'));
     // graph.computeCommunities(function(err, nc, pos) {
     //     if (err) {
     //         return console.log(err);

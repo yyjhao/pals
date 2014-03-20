@@ -1356,7 +1356,7 @@ int main(int argc, char* argv[]) {
 					}
                     q = fuzzy_clustering_modularity(&clustering);
                     INFO("Modularity is now %.4f (%ld clusters)\n", q, clustering.k);
-                    if (q != q ||  (q-prev_q < -0.001 && q > 0.25 && params.adaptive_cluster_count)) {
+                    if (q != q ||  (q-prev_q < -0.0001 && q > 0.1 && params.adaptive_cluster_count)) {
                         state_copy(&clustering.current, &clustering.best);
                     } else {
                         INFO("Increasing number of clusters to %ld\n", clustering.k+1);
