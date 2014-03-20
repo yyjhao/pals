@@ -81,7 +81,7 @@ app.get('/fb', function(req, res) {
                 var graph = Graph.fromFB(data);
                 graph.computeCommunities(function(err, nc, pos) {
                     if (err) {
-                        console.log(err);
+                        console.log('compute community err', err, err.stack);
                         return res.send(500);
                     }
                     res.send({
