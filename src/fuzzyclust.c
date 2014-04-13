@@ -203,6 +203,8 @@ void distance_init(const igraph_t *g, const igraph_vector_t *outdegrees) {
         }
     }
 
+    igraph_vector_destroy(&row);
+
     depress = _score(max_dist * 2, 0);
     // depress = 4 * sqr(max_dist +  1);
 }
@@ -671,6 +673,7 @@ int fuzzy_clustering_init(fuzzy_clustering_t *f, const igraph_t *g, int numcl,
                     f->edges[(long)(i*n+j)].weight = MATRIX(distance, i, j);
                 }
             }
+            igraph_matrix_destroy(&distance);
             IGRAPH_FINALLY_CLEAN(1);
         } else if (params.similarity_type == SIMILARITY_JACCARD) {
             igraph_matrix_t similarities;
