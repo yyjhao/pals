@@ -66,49 +66,49 @@ app.get('/fb_ok_store_it', function(req, res) {
 });
 
 app.get('/fb', function(req, res) {
-    // if (!req.session.user_id) {
-    //     return res.send(500);
-    // } else {
-    //     console.log("getting fb data for user id", req.session.user_id)
-    //     FBGraphLoader.load(req.facebook, function(err, data) {
-    //         if (err) {
-    //             console.log('err', err);
-    //             res.send(500);
-    //         } else if (data.error_code) {
-    //             console.log('fb err', data);
-    //             res.send(data);
-    //         } else {
-    //             var graph = Graph.fromFB(data);
-    //             graph.computeCommunities(function(err, nc, pos) {
-    //                 if (err) {
-    //                     console.log('compute community err', err, err.stack);
-    //                     return res.send(500);
-    //                 }
-    //                 res.send({
-    //                     nodes: graph.nodes,
-    //                     edges: graph.edges,
-    //                     communities: nc,
-    //                     positions: pos
-    //                 });
-    //             });
-    //         }
-    //     });
-    // }
+    if (!req.session.user_id) {
+        return res.send(500);
+    } else {
+        console.log("getting fb data for user id", req.session.user_id)
+        FBGraphLoader.load(req.facebook, function(err, data) {
+            if (err) {
+                console.log('err', err);
+                res.send(500);
+            } else if (data.error_code) {
+                console.log('fb err', data);
+                res.send(data);
+            } else {
+                var graph = Graph.fromFB(data);
+                graph.computeCommunities(function(err, nc, pos) {
+                    if (err) {
+                        console.log('compute community err', err, err.stack);
+                        return res.send(500);
+                    }
+                    res.send({
+                        nodes: graph.nodes,
+                        edges: graph.edges,
+                        communities: nc,
+                        positions: pos
+                    });
+                });
+            }
+        });
+    }
     // var graph = Graph.fromFB(require('./530811368.json'));
     // var graph = Graph.fromFB(require('./683128635.json'));
-    var graph = Graph.fromFB(require('./1578734144.json'));
+    // var graph = Graph.fromFB(require('./1578734144.json'));
     // var graph = Graph.fromFB(require('./100003367083848.json'));
-    graph.computeCommunities(function(err, nc, pos) {
-        if (err) {
-            return console.log(err);
-        }
-        res.send({
-            nodes: graph.nodes,
-            edges: graph.edges,
-            communities: nc,
-            positions: pos
-        });
-    });
+    // graph.computeCommunities(function(err, nc, pos) {
+    //     if (err) {
+    //         return console.log(err);
+    //     }
+    //     res.send({
+    //         nodes: graph.nodes,
+    //         edges: graph.edges,
+    //         communities: nc,
+    //         positions: pos
+    //     });
+    // });
 });
 
 
