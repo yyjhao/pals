@@ -178,11 +178,11 @@ void distance_init(const igraph_t *g, const igraph_vector_t *outdegrees) {
     igraph_vector_init(&row, num_v);
     max_dist = 0;
 
-    int i;
+    int i, j;
     for (i = 0; i < num_v; i++) {
         igraph_vector_fill(&row, -1);
         igraph_bfs(g, i, NULL, IGRAPH_OUT, 0, NULL, NULL, NULL, NULL, NULL, NULL, &row, NULL, NULL);
-        for (int j = 0; j < num_v; j++) {
+        for (j = 0; j < num_v; j++) {
             MATRIX(distance, i, j) = VECTOR(row)[j];
             if (max_dist < VECTOR(row)[j]) {
                 max_dist = VECTOR(row)[j];
@@ -191,7 +191,7 @@ void distance_init(const igraph_t *g, const igraph_vector_t *outdegrees) {
     }
 
     for (i = 0; i < num_v; i++) {
-        for (int j = 0; j < num_v; j++) {
+        for (j = 0; j < num_v; j++) {
             double d = MATRIX(distance, i, j);
             if (d != d) {
                 MATRIX(distance, i, j) = 1000;
@@ -663,9 +663,9 @@ int fuzzy_clustering_init(fuzzy_clustering_t *f, const igraph_t *g, int numcl,
             }
             igraph_eit_destroy(&eit);
             int v_num = igraph_vcount(g);
-            int i;
+            int i, j;
             for (i = 0; i < v_num; i++) {
-                for(int j = 0; j < v_num; j++) {
+                for(j = 0; j < v_num; j++) {
                     if (i == j) continue;
                     // printf("%lf\n", MATRIX(distance, i, j));
                     f->edges[(long)(i*n+j)].weight = MATRIX(distance, i, j);
