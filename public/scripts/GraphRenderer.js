@@ -37,7 +37,7 @@ function hslToHex(h, s, l) {
     return '#' + hslToRgbNormalized(h, s, l).map(genHex).join("");
 }
 
-window.GraphRenderer = function(dom, json) {
+window.GraphRenderer = function(dom, json, anon) {
     'use strict';
 
     var satu = 0.5, light = 0.4;
@@ -49,6 +49,11 @@ window.GraphRenderer = function(dom, json) {
     var graphContainer = dom.find('.graph-container')[0];
     var s = new sigma(graphContainer);
     var nodesInfo = {};
+    if (anon) {
+        json.nodes.forEach(function(n) {
+            n.name = n.id.toString(36);
+        });
+    }
     json.nodes.forEach(function(n) {
         nodesInfo[n.id] = n;
         n.id += '';
