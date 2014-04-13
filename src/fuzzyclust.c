@@ -27,6 +27,10 @@
 
 #define VERSION "0.11"
 
+#define DEPRESS depress
+
+double depress = 10000;
+
 #define sqr(x) ((x) * (x))
 
 typedef igraph_matrix_t membership_matrix_t;
@@ -145,6 +149,63 @@ igraph_real_t sample_gamma(long int alpha, igraph_real_t beta) {
     return result/beta;
 }
 
+igraph_matrix_t distance;
+double max_dist;
+
+#define min(x, y) (x < y ? x : y)
+#define max(x, y) (x > y ? x : y)
+
+double _score(const double dist, short shouldcap) {
+    double cap = dist;
+    if (shouldcap) {
+        cap = min(dist, 6);
+    }
+    if (dist >= cap + 1) {
+        cap += log(dist - cap) + 1;
+    }
+    return pow(2, cap - 1);
+}
+
+double score(const double dist) {
+    return _score(dist, 1);
+}
+
+void distance_init(const igraph_t *g, const igraph_vector_t *outdegrees) {
+    int num_v = igraph_vcount(g);
+    igraph_matrix_init(&distance, num_v, num_v);
+
+    igraph_vector_t row;
+    igraph_vector_init(&row, num_v);
+    max_dist = 0;
+
+    for (int i = 0; i < num_v; i++) {
+        igraph_vector_fill(&row, -1);
+        igraph_bfs(g, i, NULL, IGRAPH_OUT, 0, NULL, NULL, NULL, NULL, NULL, NULL, &row, NULL, NULL);
+        for (int j = 0; j < num_v; j++) {
+            MATRIX(distance, i, j) = VECTOR(row)[j];
+            if (max_dist < VECTOR(row)[j]) {
+                max_dist = VECTOR(row)[j];
+            }
+        }
+    }
+
+    for (int i = 0; i < num_v; i++) {
+        for (int j = 0; j < num_v; j++) {
+            double d = MATRIX(distance, i, j);
+            if (d != d) {
+                MATRIX(distance, i, j) = 1000;
+            } else {
+                MATRIX(distance, i, j) = d < 1.1 ? score(max_dist + 1) : score(d);
+                // MATRIX(distance, i, j) = d < 1.1 ? sqr(max_dist + 1) : sqr(d);
+                if (d < 1.1) MATRIX(distance, i, j) /= VECTOR(*outdegrees)[i] + VECTOR(*outdegrees)[j] - 2;
+            }
+        }
+    }
+
+    depress = _score(max_dist * 2, 0);
+    // depress = 4 * sqr(max_dist +  1);
+}
+
 /******************* Membership matrix functions *******************/
 void membership_matrix_normalize(membership_matrix_t *c);
 
@@ -155,7 +216,8 @@ int membership_matrix_init(membership_matrix_t *c,
     IGRAPH_CHECK(igraph_matrix_init(c, n, k));
     /* Fill it with random numbers between 0 and 1 */
     for (i=0; i<n; i++)
-        for (j=0; j<k; j++)
+        MATRIX(*c,i,0) = 1e-200 * sample_gamma(1, 1);
+        for (j=1; j<k; j++)
             MATRIX(*c,i,j) = sample_gamma(1, 1);
 
     membership_matrix_normalize(c);
@@ -213,16 +275,40 @@ void membership_matrix_prune(membership_matrix_t *c, igraph_real_t eps) {
 // Returns the similarity of two vertices using a membership matrix (two if directed)
 igraph_real_t membership_matrix_get_similarity(const membership_matrix_t *u,
         const membership_matrix_t *v, long int v1, long int v2) {
-    if (VECTOR(incmp)[v1] != VECTOR(incmp)[v2]) {
-        return 0;
-    }
     long int i, k;
     igraph_real_t result = 0.0;
     k = igraph_matrix_ncol(u);
+
+    // double la = 0, lb = 0;
     for (i=0; i<k; i++) {
-        result += MATRIX(*u, v1, i)*MATRIX(*v, v2, i);
+        // result += MATRIX(*u, v1, i)*MATRIX(*v, v2, i);
+        // result += sqrt(MATRIX(*u, v1, i)*MATRIX(*v, v2, i));
+        // la += sqr(MATRIX(*u, v1, i));
+        // lb += sqr(MATRIX(*v, v2, i));
+        // result += sqr(sqrt(MATRIX(*u, v1, i)) - sqrt(MATRIX(*v, v2, i)));
+        double pa = MATRIX(*u, v1, i), pb = MATRIX(*v, v2, i);
+        if (!i) {
+            result += pa * pb / sqr(DEPRESS);
+        } else {
+            result += pa * pb;
+        }
+        // result += fabs(pa - pb);
+        // if (pa < 0.0001 || pb < 0.0001) {
+        //     continue;
+        // }
+        // result += log(pa / pb) * pa;
     }
+    // if (result < 0.001) exit(1);
+    // return (2.0l - result) / 2.0l;
+    // result = sqrt(result) / sqrt(2);
+    // return 1.0l - result;
+    // return result;
+    // printf("%lf\n", result / (sqrt(la) * sqrt(lb)));
+    // for (i = 0; i < k; i++) {
+    //     result += sqr(MATRIX(*u, v1, i) - MATRIX(*v, v2, i));
+    // }
     return result;
+
 }
 
 // Adds a new community (or more, depending on dk) to the membership matrix
@@ -347,15 +433,15 @@ void state_recalculate(state_t *s) {
 	if (!s->is_directed) {
 		/* Recalculate self-similarities */
 		for (i=0; i < s->n; i++) {
-			s->self_sims[i] = 0.0;
-			for (j=0; j < s->k; j++)
+			s->self_sims[i] = sqr(MATRIX(s->u, i, 0) / DEPRESS);
+			for (j=1; j < s->k; j++)
 				s->self_sims[i] += sqr(MATRIX(s->u, i, j));
 		}
 	} else {
 		/* Recalculate self-similarities */
 		for (i=0; i < s->n; i++) {
 			s->self_sims[i] = 0.0;
-			for (j=0; j < s->k; j++)
+			for (j=1; j < s->k; j++)
 				s->self_sims[i] += MATRIX(s->u, i, j)*MATRIX(s->v, i, j);
 		}
 	}
@@ -463,6 +549,7 @@ int fuzzy_clustering_init(fuzzy_clustering_t *f, const igraph_t *g, int numcl,
     /* Store degrees */
     igraph_degree(g, &f->outdegrees, igraph_vss_all(), IGRAPH_OUT, 0);
 	igraph_degree(g, &f->indegrees, igraph_vss_all(), IGRAPH_IN, 0);
+
     /* Calculate edge list */
     if (params.weight_file) {
         /* pre-specified weights */
@@ -558,6 +645,7 @@ int fuzzy_clustering_init(fuzzy_clustering_t *f, const igraph_t *g, int numcl,
         }
 
         if (params.similarity_type == SIMILARITY_ADJACENCY) {
+            distance_init(g, &f->outdegrees);
             IGRAPH_CHECK(igraph_eit_create(g, igraph_ess_all(IGRAPH_EDGEORDER_FROM), &eit));
             IGRAPH_FINALLY(igraph_eit_destroy, &eit);
             while (!IGRAPH_EIT_END(eit)) {
@@ -565,10 +653,22 @@ int fuzzy_clustering_init(fuzzy_clustering_t *f, const igraph_t *g, int numcl,
                 IGRAPH_CHECK(igraph_edge(g, i, &from, &to));
                 IGRAPH_EIT_NEXT(eit);
                 if (from==to) continue;
+                // printf("%lf %lf\n", MATRIX(distance, from, to), MATRIX(distance, to, from));
                 f->edges[(long)(from*n+to)].target += 1;
+                // f->edges[(long)(from*n+to)].target = MATRIX(distance, from, to);
+                // if (!f->is_directed)
+                    // f->edges[(long)(to*n+from)].target = MATRIX(distance, to, from);
                 if (!f->is_directed) f->edges[(long)(to*n+from)].target += 1;
             }
             igraph_eit_destroy(&eit);
+            int v_num = igraph_vcount(g);
+            for (int i = 0; i < v_num; i++) {
+                for(int j = 0; j < v_num; j++) {
+                    if (i == j) continue;
+                    // printf("%lf\n", MATRIX(distance, i, j));
+                    f->edges[(long)(i*n+j)].weight = MATRIX(distance, i, j);
+                }
+            }
             IGRAPH_FINALLY_CLEAN(1);
         } else if (params.similarity_type == SIMILARITY_JACCARD) {
             igraph_matrix_t similarities;
@@ -756,8 +856,9 @@ int fuzzy_clustering_simple_step(fuzzy_clustering_t *f, igraph_bool_t prune_now)
 		glen = 0.0;
 		for (k=0; k < f->k; k++) {
 			g = 0.0;
+            double divide = (k == 0) ? DEPRESS : 1;
 			for (i=0; i < n; i++) 
-				g -= MATRIX(e, l, i)*(1.0/f->k - MATRIX(*v, i, k));
+				g -= MATRIX(e, l, i)*(1.0/f->k - MATRIX(*v, i, k) / divide);
 			MATRIX(grads_u, l, k) = g;
 			glen += sqr(g);
 		}
@@ -766,7 +867,7 @@ int fuzzy_clustering_simple_step(fuzzy_clustering_t *f, igraph_bool_t prune_now)
 	if (f->is_directed) {
 		for (l=0; l < n; l++) {
 			glen = 0.0;
-			for (k=0; k < f->k; k++) {
+			for (k=1; k < f->k; k++) {
 				g = 0.0;
 				for (i=0; i < n; i++) 
 					g -= MATRIX(e, i, l)*(1.0/f->k - MATRIX(*u, i, k));
@@ -794,7 +895,7 @@ int fuzzy_clustering_simple_step(fuzzy_clustering_t *f, igraph_bool_t prune_now)
          * be excluded), set it to zero. */
         j=0;
         for (i=0; i < n; i++) {
-          for (k=0; k < f->k; k++) {
+          for (k=1; k < f->k; k++) {
             if (MATRIX(f->current.u, i, k) < params.prune_threshold &&
               MATRIX(f->current.u, i, k) > 0 && MATRIX(grads_u, i, k) < 0) {
               MATRIX(f->current.u, i, k) = 0.0;
@@ -804,7 +905,7 @@ int fuzzy_clustering_simple_step(fuzzy_clustering_t *f, igraph_bool_t prune_now)
         }
 		if (f->is_directed) {
 			for (i=0; i < n; i++) {
-			  for (k=0; k < f->k; k++) {
+			  for (k=1; k < f->k; k++) {
 				if (MATRIX(f->current.v, i, k) < params.prune_threshold &&
 				  MATRIX(f->current.v, i, k) > 0 && MATRIX(grads_v, i, k) < 0) {
 				  MATRIX(f->current.v, i, k) = 0.0;
@@ -821,16 +922,30 @@ int fuzzy_clustering_simple_step(fuzzy_clustering_t *f, igraph_bool_t prune_now)
         nu = f->epsilon;
         for (i=0; i < n; i++) {
             k=0;
+            // for (l=2; l < f->k; l++)
+            //     if (MATRIX(grads_u, i, l) > MATRIX(grads_u, i, k)) k=l;
+            // if (MATRIX(grads_u, i, k) > nu) 
+            //     MATRIX(f->current.u, i, k) += MATRIX(grads_u, i, k) * f->step_size;
             for (l=1; l < f->k; l++)
                 if (MATRIX(grads_u, i, l) > MATRIX(grads_u, i, k)) k=l;
-            if (MATRIX(grads_u, i, k) > nu) 
+            if (MATRIX(grads_u, i, k) > nu) {
+                // if (MATRIX(grads_u, i, k) < 0.0 && k + 1 != f->k) {
+                //     for (l=1; l < f->k; l++)
+                //         printf("%lf, %ld, %ld\n", MATRIX(grads_u, i, l), l, k);
+                // }
                 MATRIX(f->current.u, i, k) += MATRIX(grads_u, i, k) * f->step_size;
+            }
+
+
+            // for (l=0; l < f->k; l++) {
+            //     printf("%lf %ld %ld %lf\n", MATRIX(grads_u, i, l), i, l, VECTOR(f->outdegrees)[i]);
+            // }
         }
         membership_matrix_normalize(&f->current.u);
 		if (f->is_directed) {
 			for (i=0; i < n; i++) {
-				k=0;
-				for (l=1; l < f->k; l++)
+				k=1;
+				for (l=2; l < f->k; l++)
 					if (MATRIX(grads_v, i, l) > MATRIX(grads_v, i, k)) k=l;
 				if (MATRIX(grads_v, i, k) > nu) 
 					MATRIX(f->current.v, i, k) += MATRIX(grads_v, i, k) * f->step_size;
@@ -1317,7 +1432,7 @@ int main(int argc, char* argv[]) {
 
     INFO("Graph has %ld vertices and %ld edges\n", (long)igraph_vcount(&g), (long)igraph_ecount(&g));
     INFO("Initializing constraints\n");
-    IGRAPH_CHECK(fuzzy_clustering_init(&clustering, &g, 2, params.dominance_threshold));
+    IGRAPH_CHECK(fuzzy_clustering_init(&clustering, &g, 10, params.dominance_threshold));
     IGRAPH_FINALLY(fuzzy_clustering_destroy, &clustering);
 
 	tries = (params.adaptive_cluster_count || params.no_of_clusters > clustering.k) ? max_cluster_tries : max_tries;
@@ -1356,7 +1471,7 @@ int main(int argc, char* argv[]) {
 					}
                     q = fuzzy_clustering_modularity(&clustering);
                     INFO("Modularity is now %.4f (%ld clusters)\n", q, clustering.k);
-                    if (q != q ||  (q-prev_q < -0.0001 && q > 0.1 && params.adaptive_cluster_count)) {
+                    if (q != q ||  (q-prev_q < -0.0001 && q > 0.05 && params.adaptive_cluster_count)) {
                         state_copy(&clustering.current, &clustering.best);
                     } else {
                         INFO("Increasing number of clusters to %ld\n", clustering.k+1);
@@ -1383,7 +1498,7 @@ int main(int argc, char* argv[]) {
 	// it can happen that some of the communities are (almost) empty. We remove
 	// them now
 	i = clustering.k;
-	fuzzy_clustering_remove_empty_communities(&clustering, 1.0);
+	// fuzzy_clustering_remove_empty_communities(&clustering, 1.0);
 	if (clustering.k < i) {
 		INFO("Removed %ld empty clusters\n", (i - clustering.k));
 	}
