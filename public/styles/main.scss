@@ -65,8 +65,9 @@ $icon-font-path: "/components/bootstrap-sass-official/vendor/assets/fonts/bootst
     border-radius: 1000px;
     padding: 2px 1.2em;
     margin: 2px;
-    text-shadow: 0 1px 1px rgba(white, 0.5);
+    text-shadow: 0 1px 1px rgba(black, 0.5);
     font-weight: bold;
+    color: white;
 }
 
 .bottom-bar {
