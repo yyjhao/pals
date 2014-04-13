@@ -178,7 +178,8 @@ void distance_init(const igraph_t *g, const igraph_vector_t *outdegrees) {
     igraph_vector_init(&row, num_v);
     max_dist = 0;
 
-    for (int i = 0; i < num_v; i++) {
+    int i;
+    for (i = 0; i < num_v; i++) {
         igraph_vector_fill(&row, -1);
         igraph_bfs(g, i, NULL, IGRAPH_OUT, 0, NULL, NULL, NULL, NULL, NULL, NULL, &row, NULL, NULL);
         for (int j = 0; j < num_v; j++) {
@@ -189,7 +190,7 @@ void distance_init(const igraph_t *g, const igraph_vector_t *outdegrees) {
         }
     }
 
-    for (int i = 0; i < num_v; i++) {
+    for (i = 0; i < num_v; i++) {
         for (int j = 0; j < num_v; j++) {
             double d = MATRIX(distance, i, j);
             if (d != d) {
@@ -662,7 +663,8 @@ int fuzzy_clustering_init(fuzzy_clustering_t *f, const igraph_t *g, int numcl,
             }
             igraph_eit_destroy(&eit);
             int v_num = igraph_vcount(g);
-            for (int i = 0; i < v_num; i++) {
+            int i;
+            for (i = 0; i < v_num; i++) {
                 for(int j = 0; j < v_num; j++) {
                     if (i == j) continue;
                     // printf("%lf\n", MATRIX(distance, i, j));
