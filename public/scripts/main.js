@@ -1,4 +1,4 @@
-$('.start-button').click(function() {
+function startLoading(anon) {
     'use strict';
     localStorage.setItem('last-try', 0);
     localStorage.setItem('anon-last-try', 0);
@@ -15,35 +15,23 @@ $('.start-button').click(function() {
         if (json.error_code) {
             alert(json.error_msg);
         }
-        window.g = new GraphRenderer($('#graph-viewer'), json);
+        window.g = new GraphRenderer($('#graph-viewer'), json, anon);
     }).fail(function() {
-        localStorage.setItem('last-try', Date.now());
+        if (anon) {
+            localStorage.setItem('anon-last-try', Date.now());
+        } else {
+            localStorage.setItem('last-try', Date.now());
+        }
         location = '/fb_login';
     });
+}
+
+$('.start-button').click(function() {
+    startLoading();
 });
 
 $('.anon-start-button').click(function() {
-    'use strict';
-    localStorage.setItem('anon-last-try', 0);
-    localStorage.setItem('last-try', 0);
-    $("#loading-screen").show();
-    $.ajax({
-        url: '/fb',
-        timeout: 3600 * 1000
-    }).done(function(json) {
-        $("#loading-screen").hide();
-        $('#graph-viewer').height(window.innerHeight);
-        $('html, body').animate({
-            scrollTop: $('#graph-viewer').offset().top
-        }, 1000);
-        if (json.error_code) {
-            alert(json.error_msg);
-        }
-        window.g = new GraphRenderer($('#graph-viewer'), json, true);
-    }).fail(function() {
-        localStorage.setItem('anon-last-try', Date.now());
-        location = '/fb_login';
-    });
+    startLoading(false);
 });
 
 if (Date.now() - parseInt(localStorage.getItem('anon-last-try'), 10) < 300000) {
