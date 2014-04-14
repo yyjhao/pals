@@ -3,7 +3,10 @@ $('.start-button').click(function() {
     localStorage.setItem('last-try', 0);
     localStorage.setItem('anon-last-try', 0);
     $("#loading-screen").show();
-    $.get('/fb').done(function(json) {
+    $.ajax({
+        url: '/fb',
+        timeout: 3600 * 1000
+    }).done(function(json) {
         $("#loading-screen").hide();
         $('#graph-viewer').height(window.innerHeight);
         $('html, body').animate({
@@ -24,7 +27,10 @@ $('.anon-start-button').click(function() {
     localStorage.setItem('anon-last-try', 0);
     localStorage.setItem('last-try', 0);
     $("#loading-screen").show();
-    $.get('/fb').done(function(json) {
+    $.ajax({
+        url: '/fb',
+        timeout: 3600 * 1000
+    }).done(function(json) {
         $("#loading-screen").hide();
         $('#graph-viewer').height(window.innerHeight);
         $('html, body').animate({

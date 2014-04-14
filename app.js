@@ -66,6 +66,7 @@ app.get('/fb_ok_store_it', function(req, res) {
 });
 
 app.get('/fb', function(req, res) {
+    res.connection.setTimeout(0);
     if (!req.session.user_id) {
         return res.send(500);
     } else {
@@ -98,6 +99,8 @@ app.get('/fb', function(req, res) {
     // var graph = Graph.fromFB(require('./683128635.json'));
     // var graph = Graph.fromFB(require('./1578734144.json'));
     // var graph = Graph.fromFB(require('./100003367083848.json'));
+    // var graph = Graph.fromFB(require('./654382555.json'));
+    // var graph = Graph.fromFB(require('./629031919.json'));
     // graph.computeCommunities(function(err, nc, pos) {
     //     if (err) {
     //         return console.log(err);
@@ -115,3 +118,4 @@ app.get('/fb', function(req, res) {
 http.createServer(app).listen(app.get('port'), function(){
     console.log('Express server listening on port ' + app.get('port'));
 });
+// 

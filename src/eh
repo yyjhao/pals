@@ -149,7 +149,6 @@ igraph_real_t sample_gamma(long int alpha, igraph_real_t beta) {
     return result/beta;
 }
 
-igraph_matrix_t distance;
 double max_dist;
 
 #define min(x, y) (x < y ? x : y)
@@ -169,46 +168,6 @@ double _score(const double dist, short shouldcap) {
 
 double score(const double dist) {
     return _score(dist, 1);
-}
-
-void distance_init(const igraph_t *g, const igraph_vector_t *outdegrees) {
-    int num_v = igraph_vcount(g);
-    igraph_matrix_init(&distance, num_v, num_v);
-
-    igraph_vector_t row;
-    igraph_vector_init(&row, num_v);
-    max_dist = 0;
-
-    int i, j;
-    for (i = 0; i < num_v; i++) {
-        igraph_vector_fill(&row, -1);
-        igraph_bfs(g, i, NULL, IGRAPH_OUT, 0, NULL, NULL, NULL, NULL, NULL, NULL, &row, NULL, NULL);
-        for (j = 0; j < num_v; j++) {
-            MATRIX(distance, i, j) = VECTOR(row)[j];
-            if (max_dist < VECTOR(row)[j]) {
-                max_dist = VECTOR(row)[j];
-            }
-        }
-    }
-
-    for (i = 0; i < num_v; i++) {
-        for (j = 0; j < num_v; j++) {
-            if (i == j) continue;
-            double d = MATRIX(distance, i, j);
-            if (d != d) {
-                MATRIX(distance, i, j) = 1000;
-            } else {
-                MATRIX(distance, i, j) = d < 1.1 ? score(max_dist + 1) : score(d);
-                // MATRIX(distance, i, j) = d < 1.1 ? sqr(max_dist + 1) : sqr(d);
-                if (d < 1.1) MATRIX(distance, i, j) /= VECTOR(*outdegrees)[i] + VECTOR(*outdegrees)[j] - 2;
-            }
-        }
-    }
-
-    igraph_vector_destroy(&row);
-
-    depress = _score(pow(max_dist, 2), 0);
-    // depress = 4 * sqr(max_dist +  1);
 }
 
 /******************* Membership matrix functions *******************/
@@ -650,7 +609,7 @@ int fuzzy_clustering_init(fuzzy_clustering_t *f, const igraph_t *g, int numcl,
         }
 
         if (params.similarity_type == SIMILARITY_ADJACENCY) {
-            distance_init(g, &f->outdegrees);
+            depress = 1;
             IGRAPH_CHECK(igraph_eit_create(g, igraph_ess_all(IGRAPH_EDGEORDER_FROM), &eit));
             IGRAPH_FINALLY(igraph_eit_destroy, &eit);
             while (!IGRAPH_EIT_END(eit)) {
@@ -672,10 +631,9 @@ int fuzzy_clustering_init(fuzzy_clustering_t *f, const igraph_t *g, int numcl,
                 for(j = 0; j < v_num; j++) {
                     if (i == j) continue;
                     // printf("%lf\n", MATRIX(distance, i, j));
-                    f->edges[(long)(i*n+j)].weight = MATRIX(distance, i, j);
+                    f->edges[(long)(i*n+j)].weight = 1;
                 }
             }
-            igraph_matrix_destroy(&distance);
             IGRAPH_FINALLY_CLEAN(1);
         } else if (params.similarity_type == SIMILARITY_JACCARD) {
             igraph_matrix_t similarities;
