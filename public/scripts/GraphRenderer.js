@@ -47,6 +47,7 @@ window.GraphRenderer = function(dom, json, anon) {
     sigma.settings.defaultNodeColor = '#369';
     var comms = {};
     var graphContainer = dom.find('.graph-container')[0];
+    graphContainer.innerHTML = "";
     var s = new sigma(graphContainer);
     var nodesInfo = {};
     if (anon) {
@@ -135,7 +136,7 @@ window.GraphRenderer = function(dom, json, anon) {
         });
         return dom;
     }).forEach(function(d) {
-        dom.find('.graph-sidebar').append(d);
+        dom.find('.graph-sidebar').html("").append(d);
     });
     json.positions.forEach(function(pos) {
         if (!pos.id) return;
