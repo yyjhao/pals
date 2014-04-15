@@ -31,7 +31,7 @@ $('.start-button').click(function() {
 });
 
 $('.anon-start-button').click(function() {
-    startLoading(false);
+    startLoading(true);
 });
 
 if (Date.now() - parseInt(localStorage.getItem('anon-last-try'), 10) < 300000) {
