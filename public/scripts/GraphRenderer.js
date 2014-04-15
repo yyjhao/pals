@@ -111,6 +111,7 @@ window.GraphRenderer = function(dom, json, anon) {
 
     var highlightColor = hslToHex(colorStep * (numColors - 1), satu, light);
 
+    dom.find('.graph-sidebar').html("");
     var doms = Object.keys(comms).map(function(k) {
         var arr = comms[k];
         var dom = document.createElement('div');
@@ -136,7 +137,7 @@ window.GraphRenderer = function(dom, json, anon) {
         });
         return dom;
     }).forEach(function(d) {
-        dom.find('.graph-sidebar').html("").append(d);
+        dom.find('.graph-sidebar').append(d);
     });
     json.positions.forEach(function(pos) {
         if (!pos.id) return;
