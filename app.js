@@ -72,11 +72,15 @@ app.get('/fb', function(req, res) {
         return res.send(500);
     } else {
         if (fbTasks[req.session.user_id]) {
-            fbTasks[req.session.user_id].done(function(err, nc, pos) {
+            fbTasks[req.session.user_id].done(function(result) {
                 if (err) {
                     console.log('compute community err', err, err.stack);
                     return res.send(500);
                 }
+                var err = result[0],
+                    nc = result[1],
+                    pos = result[2],
+                    graph = result[3];
                 res.send({
                     nodes: graph.nodes,
                     edges: graph.edges,
@@ -97,8 +101,11 @@ app.get('/fb', function(req, res) {
                     var graph = Graph.fromFB(data);
                     var task = graph.computeCommunities();
                     fbTasks[req.session.user_id] = task;
-                    task.done(function(err, nc, pos) {
+                    task.done(function(result) {
                         delete fbTasks[req.session.user_id];
+                        var err = result[0],
+                            nc = result[1],
+                            pos = result[2];
                         if (err) {
                             console.log('compute community err', err, err.stack);
                             return res.send(500);
