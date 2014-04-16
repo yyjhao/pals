@@ -111,8 +111,8 @@ app.get('/fb', function(req, res) {
                         });
                     });
                 }
-            }
-        });
+            });
+        }
     }
     // var graph = Graph.fromFB(require('./530811368.json'));
     // var graph = Graph.fromFB(require('./683128635.json'));
