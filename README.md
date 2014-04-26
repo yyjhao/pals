@@ -4,12 +4,12 @@ Pals is a simple node.js server application that visualize a user's facebook soc
 
 ## Files
 
-`public/*`: all static files, including images, JavaScripts, stylesheets and html files
-`src/fuzzyclust.c`: the modified fuzzyclust code
-`src/renderGraph.c`: the force-directed graph rendering code
-`FBGraphLoader.js`: A small utility to load facebook graph of a user
-`Graph.js`: a graph library to handle import of social graphs and communicating with `fuzzyclust` and `renderGraph`
-`app.js`: the main app
+1. `public/*`: all static files, including images, JavaScripts, stylesheets and html files
+1. `src/fuzzyclust.c`: the modified fuzzyclust code
+1. `src/renderGraph.c`: the force-directed graph rendering code
+1. `FBGraphLoader.js`: A small utility to load facebook graph of a user
+1. `Graph.js`: a graph library to handle import of social graphs and communicating with `fuzzyclust` and `renderGraph`
+1. `app.js`: the main app
 
 ## Getting started
 
