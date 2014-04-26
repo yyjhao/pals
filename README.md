@@ -36,3 +36,5 @@ Then you can start developing by running
 ```sh
 $ grunt
 ```
+
+Then go to `http://localhost:port`.
