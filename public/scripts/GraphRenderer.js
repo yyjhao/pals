@@ -140,7 +140,7 @@ window.GraphRenderer = function(dom, json, anon) {
         dom.find('.graph-sidebar').append(d);
     });
     json.positions.forEach(function(pos) {
-        if (!pos.id) return;
+        if (pos.id == undefined) return;
         nodesInfo[pos.id].x = pos.x;
         nodesInfo[pos.id].y = pos.y;
     });
